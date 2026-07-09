@@ -1,92 +1,333 @@
-# Sistema de Matrícula de Cursos Extracurriculares
-Instituto Tecnológico "Valle Grande" — Java Swing + MySQL (AWS RDS)
+# 🎓 Sistema de Matrícula de Cursos Extracurriculares
 
-## Estructura MVC (según lo pedido)
+<p align="center">
+  <b>Instituto de Educación Superior Tecnológico "Valle Grande"</b><br>
+  Sistema desarrollado con Java Swing + MySQL (AWS RDS)
+</p>
+
+---
+
+## 👨‍💻 Autor
+
+**Oscar Heyton Sanchez Arias**  
+Carrera Profesional: **Análisis de Sistemas Empresariales**
+
+---
+
+# 📌 Descripción del Proyecto
+
+El presente proyecto consiste en un **Sistema de Matrícula de Cursos Extracurriculares**, desarrollado para gestionar el registro de estudiantes en diferentes cursos ofrecidos por el Instituto Tecnológico "Valle Grande".
+
+La aplicación permite administrar matrículas mediante operaciones CRUD, control automático de cupos, validaciones de negocio, autenticación de usuarios y generación de reportes en formato PDF.
+
+El sistema utiliza una arquitectura **MVC (Modelo - Vista - Controlador)** para mantener una estructura organizada, escalable y fácil de mantener.
+
+---
+
+# 🛠️ Tecnologías Utilizadas
+
+| Tecnología | Uso |
+|---|---|
+| ☕ Java | Lenguaje principal de desarrollo |
+| 🖥️ Java Swing | Diseño de interfaz gráfica |
+| 🗄️ MySQL 8.4 | Motor de base de datos |
+| ☁️ AWS RDS | Hospedaje de la base de datos |
+| 🔌 JDBC | Conexión entre Java y MySQL |
+| 📄 iText | Generación de reportes PDF |
+| 📦 Maven | Gestión de dependencias |
+| 🏗️ Arquitectura MVC | Organización del proyecto |
+
+---
+
+# 🏛️ Arquitectura del Proyecto (MVC)
 
 ```
 src/main/java/oscar/sanchez/
-├── Main.java                     # Punto de entrada, abre el login
-├── model/                        # Conexión, DAOs y entidades
-│   ├── ConexionBD.java           # Conexión JDBC a MySQL RDS
-│   ├── Curso.java                # Entidad tabla maestra
-│   ├── Matricula.java            # Entidad tabla transaccional
-│   ├── Usuario.java              # Entidad para login
+
+├── Main.java
+│   └── Punto de entrada del sistema
+
+├── model/
+│   ├── ConexionBD.java
+│   │   └── Conexión JDBC con MySQL RDS
+│   │
+│   ├── Curso.java
+│   │   └── Entidad de cursos
+│   │
+│   ├── Matricula.java
+│   │   └── Entidad de matrículas
+│   │
+│   ├── Usuario.java
+│   │   └── Entidad de usuarios
+│   │
 │   ├── CursoDAO.java
-│   ├── MatriculaDAO.java         # CRUD + eliminado lógico
+│   ├── MatriculaDAO.java
 │   ├── UsuarioDAO.java
-│   └── PDFExporter.java          # Exportación de reporte a PDF (iText)
+│   │
+│   └── PDFExporter.java
+│       └── Exportación de reportes PDF
+
 ├── view/
-│   ├── LoginView.java            # Pantalla de inicio (login)
-│   ├── MenuPrincipalView.java    # Menú principal tras iniciar sesión
-│   └── MatriculaView.java        # CRUD de matrículas
+│   ├── LoginView.java
+│   │   └── Inicio de sesión
+│   │
+│   ├── MenuPrincipalView.java
+│   │   └── Menú principal
+│   │
+│   └── MatriculaView.java
+│       └── Gestión de matrículas
+
 └── controller/
+
     ├── LoginController.java
-    └── MatriculaController.java  # Validaciones y lógica de negocio
+    │   └── Control de autenticación
+
+    └── MatriculaController.java
+        └── Validaciones y lógica del negocio
 ```
 
-## 1. Base de datos
+---
 
-1. Crea tu instancia MySQL en AWS RDS (puerto 3306) y configura el
-   Security Group para permitir tu IP.
-2. Ejecuta el script `sql/script.sql` completo en tu cliente MySQL
-   (Workbench, DBeaver, o `mysql -h <endpoint> -u <user> -p < script.sql`).
-   Este script:
-   - Crea la tabla maestra `curso` con 4 cursos de ejemplo.
-   - Crea la tabla `usuario` con un usuario `admin / admin123`.
-   - Crea la tabla transaccional `matricula` con:
-     - CHECK de DNI (8 dígitos numéricos)
-     - FK obligatoria hacia `curso` (no admite curso inexistente)
-     - CHECK beca ↔ monto_pago = 0.00
-     - ENUM de turno
-   - Crea triggers que controlan el cupo disponible (no permiten
-     matricular si no hay cupo) y que liberan el cupo al anular
-     (eliminado lógico) una matrícula.
+# 🗄️ Base de Datos
 
-## 2. Configurar la conexión
+La base de datos está implementada en **MySQL 8.4 alojado en Amazon RDS**.
 
-Edita `src/main/java/oscar/sanchez/model/ConexionBD.java` y reemplaza:
+## Configuración
+
+- Motor: MySQL
+- Puerto: 3306
+- Servicio Cloud: AWS RDS
+- Conexión mediante JDBC
+
+---
+
+## 📚 Tablas principales
+
+### 📘 Curso
+
+Tabla maestra que almacena los cursos extracurriculares disponibles.
+
+Características:
+
+- Nombre del curso.
+- Descripción.
+- Cupo máximo.
+- Cupo disponible.
+- Estado activo/inactivo.
+
+Cursos registrados:
+
+- Liderazgo
+- Oratoria
+- Python Básico
+- Cloud Computing
+
+
+---
+
+### 👤 Usuario
+
+Gestiona el acceso al sistema.
+
+Usuario inicial:
+
+```
+Usuario: admin
+Password: admin123
+```
+
+---
+
+### 📝 Matrícula
+
+Tabla transaccional donde se registran las matrículas.
+
+Incluye:
+
+- DNI del estudiante.
+- Nombres y apellidos.
+- Curso seleccionado.
+- Turno.
+- Tipo de beca.
+- Monto de pago.
+- Estado de matrícula.
+
+---
+
+# ⚙️ Reglas de Negocio Implementadas
+
+✅ Validación de DNI con 8 dígitos.
+
+✅ No permite registrar matrículas en cursos inexistentes.
+
+✅ Control automático de cupos disponibles.
+
+✅ No permite matricular cuando el curso está lleno.
+
+✅ Uso de eliminación lógica:
+
+```
+estado = 0
+```
+
+en lugar de eliminar registros físicamente.
+
+✅ Liberación automática de cupos al anular una matrícula.
+
+---
+
+# 🔥 Triggers Implementados
+
+## trg_before_insert_matricula
+
+Valida:
+
+- Existencia del curso.
+- Estado activo.
+- Disponibilidad de cupos.
+
+---
+
+## trg_after_insert_matricula
+
+Actualiza automáticamente:
+
+```
+cupo_disponible = cupo_disponible - 1
+```
+
+al registrar una matrícula.
+
+---
+
+## trg_after_update_matricula
+
+Cuando una matrícula pasa a estado inactivo:
+
+```
+estado 1 → estado 0
+```
+
+devuelve el cupo disponible.
+
+---
+
+# 🚀 Instalación y Ejecución
+
+## 1. Clonar repositorio
+
+```bash
+git clone https://github.com/oscarsanchez0712/-ht252_Oscar-Heyton-Sanchez-Arias.git
+```
+
+---
+
+## 2. Configurar Base de Datos
+
+Ejecutar:
+
+```
+sql/script.sql
+```
+
+en MySQL Workbench o DBeaver.
+
+---
+
+## 3. Configurar conexión RDS
+
+Editar:
+
+```
+src/main/java/oscar/sanchez/model/ConexionBD.java
+```
+
+Modificar:
 
 ```java
-private static final String HOST     = "TU_ENDPOINT_RDS.rds.amazonaws.com";
-private static final String USUARIO  = "admin";
-private static final String PASSWORD = "TU_PASSWORD";
+HOST = "TU_ENDPOINT_RDS";
+USUARIO = "TU_USUARIO";
+PASSWORD = "TU_PASSWORD";
 ```
 
-con los datos reales de tu instancia RDS.
+con los datos reales de AWS RDS.
 
-## 3. Compilar y ejecutar
+---
 
-Con Maven instalado:
+## 4. Compilar Proyecto
+
+Con Maven:
 
 ```bash
 mvn clean package
+```
+
+Ejecutar:
+
+```bash
 java -jar target/hackathon-matricula.jar
 ```
 
-También puedes abrir la carpeta como proyecto Maven en NetBeans o
-IntelliJ y ejecutar `Main.java` directamente.
+---
 
-## 4. Uso de la aplicación
+# 🖥️ Funcionalidades del Sistema
 
-1. **Inicio de sesión**: usuario `admin`, contraseña `admin123`.
-2. **Menú principal** → "Gestión de Matrículas".
-3. Formulario CRUD:
-   - DNI validado (8 dígitos).
-   - Curso: `JComboBox` cargado desde la tabla maestra `curso`.
-   - Turno: `JRadioButton` (Mañana / Tarde / Noche).
-   - Beca: `JCheckBox`; al marcarla, el monto se fija en 0.00.
-   - Botones: Nuevo, Guardar, Modificar, Eliminar (anular = eliminado
-     lógico, nunca DELETE físico) y **Exportar PDF**.
-4. **Exportar PDF**: genera un reporte con todas las matrículas
-   activas usando `PDFExporter` (iText).
+## 🔐 Inicio de Sesión
 
-## Notas para la sustentación
+- Validación de usuario.
+- Acceso mediante credenciales.
 
-- El "Eliminar" nunca borra físicamente: solo cambia `estado = 0`.
-  El trigger `trg_after_update_matricula` libera automáticamente el
-  cupo del curso.
-- Los triggers `trg_before_insert_matricula` y
-  `trg_after_insert_matricula` controlan que no se pueda matricular
-  en un curso sin cupo o inexistente.
-- El PDF se genera bajo demanda desde la vista de matrículas y se
-  guarda donde el usuario elija (`JFileChooser`).
+
+## 📋 Gestión de Matrículas
+
+Permite:
+
+✅ Crear matrícula.
+
+✅ Listar matrículas.
+
+✅ Modificar registros.
+
+✅ Anular matrícula.
+
+✅ Exportar reporte PDF.
+
+
+## 📄 Reportes PDF
+
+El sistema genera reportes mediante:
+
+```
+PDFExporter.java
+```
+
+utilizando la librería:
+
+```
+iText
+```
+
+---
+
+# 📸 Evidencias
+
+- Prototipo UI en Figma.
+- Base de datos MySQL RDS.
+- Reglas Security Group AWS.
+- Ejecución del sistema Java Swing.
+
+---
+
+# 📌 Conclusión
+
+Este proyecto permite automatizar el proceso de matrícula de cursos extracurriculares, reduciendo errores manuales y proporcionando un sistema organizado con control de cupos, seguridad de datos y generación de reportes.
+
+---
+
+<p align="center">
+Desarrollado por  
+<br>
+<b>Oscar Heyton Sanchez Arias</b>
+<br>
+2026
+</p>
