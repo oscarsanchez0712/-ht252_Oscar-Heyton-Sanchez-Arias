@@ -13,7 +13,7 @@ import java.sql.SQLException;
  */
 public class ConexionBD {
 
-    private static final String HOST        = "database-1.cqgwkwyy7rng.us-east-1.rds.amazonaws.com ";
+    private static final String HOST        = "database-1.ccnixonjcqo2.us-east-1.rds.amazonaws.com ";
     private static final String PUERTO      = "3306";
     private static final String BASE_DATOS  = "hackathon_matricula";
     private static final String URL = "jdbc:mysql://" + HOST + ":" + PUERTO + "/" + BASE_DATOS
