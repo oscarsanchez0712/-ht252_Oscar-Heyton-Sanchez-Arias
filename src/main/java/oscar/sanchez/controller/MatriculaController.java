@@ -20,6 +20,7 @@ public class MatriculaController {
     private final MatriculaDAO matriculaDAO;
     private final CursoDAO cursoDAO;
     private static final Pattern PATRON_DNI = Pattern.compile("^\\d{8}$");
+    private static final Pattern PATRON_NOMBRE = Pattern.compile("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$");
 
     public MatriculaController(MatriculaView vista) {
         this.vista = vista;
@@ -51,10 +52,31 @@ public class MatriculaController {
             vista.mostrarError("El DNI debe tener exactamente 8 dígitos numéricos");
             return null;
         }
-        if (vista.getNombres().isEmpty() || vista.getApellidos().isEmpty()) {
+
+        String nombres = vista.getNombres();
+        String apellidos = vista.getApellidos();
+
+        if (nombres.isEmpty() || apellidos.isEmpty()) {
             vista.mostrarError("Nombres y apellidos son obligatorios");
             return null;
         }
+
+        // Validar que solo contengan letras y espacios
+        if (!PATRON_NOMBRE.matcher(nombres).matches()) {
+            vista.mostrarError("El campo Nombres solo debe contener letras");
+            return null;
+        }
+        if (!PATRON_NOMBRE.matcher(apellidos).matches()) {
+            vista.mostrarError("El campo Apellidos solo debe contener letras");
+            return null;
+        }
+
+        // Validar longitud máxima (ajusta el número según tu columna en BD)
+        if (nombres.length() > 50 || apellidos.length() > 50) {
+            vista.mostrarError("Nombres y apellidos no deben superar los 50 caracteres");
+            return null;
+        }
+
         Curso curso = vista.getCursoSeleccionado();
         if (curso == null) {
             vista.mostrarError("Debe seleccionar un curso");
@@ -66,6 +88,13 @@ public class MatriculaController {
             return null;
         }
         boolean beca = vista.isBecaSeleccionada();
+
+        // Si no tiene beca, el monto ya no puede quedar vacío en silencio
+        if (!beca && vista.getMonto().isEmpty()) {
+            vista.mostrarError("Debe ingresar el monto de pago (o marcar Beca completa)");
+            return null;
+        }
+
         double monto;
         try {
             monto = vista.getMonto().isEmpty() ? 0.0 : Double.parseDouble(vista.getMonto());
@@ -73,14 +102,27 @@ public class MatriculaController {
             vista.mostrarError("El monto de pago debe ser numérico");
             return null;
         }
+
+        // No permitir montos negativos
+        if (monto < 0) {
+            vista.mostrarError("El monto de pago no puede ser negativo");
+            return null;
+        }
+
+        // No permitir un monto absurdamente alto (evita errores de tipeo)
+        if (monto > 10000) {
+            vista.mostrarError("El monto de pago parece incorrecto (máximo S/. 10,000)");
+            return null;
+        }
+
         if (beca) {
             monto = 0.00;
         }
 
         Matricula m = new Matricula();
         m.setDni(dni);
-        m.setNombres(vista.getNombres());
-        m.setApellidos(vista.getApellidos());
+        m.setNombres(nombres);
+        m.setApellidos(apellidos);
         m.setIdCurso(curso.getIdCurso());
         m.setTurno(turno);
         m.setBeca(beca);
